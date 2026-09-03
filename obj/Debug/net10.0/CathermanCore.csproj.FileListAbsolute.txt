@@ -1,0 +1,13 @@
+C:\Projects\BibleWork\CathermanCore\bin\Debug\net10.0\CathermanCore.deps.json
+C:\Projects\BibleWork\CathermanCore\bin\Debug\net10.0\CathermanCore.dll
+C:\Projects\BibleWork\CathermanCore\bin\Debug\net10.0\CathermanCore.pdb
+C:\Projects\BibleWork\CathermanCore\obj\Debug\net10.0\CathermanCore.csproj.AssemblyReference.cache
+C:\Projects\BibleWork\CathermanCore\obj\Debug\net10.0\CathermanCore.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\BibleWork\CathermanCore\obj\Debug\net10.0\CathermanCore.AssemblyInfoInputs.cache
+C:\Projects\BibleWork\CathermanCore\obj\Debug\net10.0\CathermanCore.AssemblyInfo.cs
+C:\Projects\BibleWork\CathermanCore\obj\Debug\net10.0\CathermanCore.csproj.CoreCompileInputs.cache
+C:\Projects\BibleWork\CathermanCore\obj\Debug\net10.0\CathermanCore.sourcelink.json
+C:\Projects\BibleWork\CathermanCore\obj\Debug\net10.0\CathermanCore.dll
+C:\Projects\BibleWork\CathermanCore\obj\Debug\net10.0\refint\CathermanCore.dll
+C:\Projects\BibleWork\CathermanCore\obj\Debug\net10.0\CathermanCore.pdb
+C:\Projects\BibleWork\CathermanCore\obj\Debug\net10.0\ref\CathermanCore.dll
