@@ -259,4 +259,30 @@ public static class Extensions
         return list.Count == idSet.Count && list.All(item => idSet.Contains(item.Id));
     }
 
+    /// <summary>
+    /// Scans file lines directly to check for text without allocating large strings or parsing JSON.
+    /// Stops on the first match for maximum efficiency.
+    /// </summary>
+    public static bool ContainsSearchText(this FileInfo file, string searchText)
+    {
+        try
+        {
+            using var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, FileOptions.SequentialScan);
+            using var sr = new StreamReader(fs, Encoding.UTF8);
+
+            string? line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                if (line.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                    return true; // Fast exit on first match
+            }
+        }
+        catch
+        {
+            // Handle file lock or read errors gracefully
+        }
+
+        return false;
+    }
+
 }

@@ -17,7 +17,8 @@ public static class TextService
         ContainsWordSequence(GetWords(wordSequence), text);
 
     /// <summary>
-    /// Determines whether a tokenized word list contains the exact target text sequence in order.
+    /// Determines whether a target text contains an exact ordered word sequence from <paramref name="wordSequence"/>.
+    /// Falls back to checking if <paramref name="text"/> contains any individual word from <paramref name="wordSequence"/>.
     /// </summary>
     /// <param name="wordSequence">A pre-split list of words representing the target search space.</param>
     /// <param name="text">The phrase or sequence of words to look for in <paramref name="wordSequence"/>.</param>
@@ -30,21 +31,125 @@ public static class TextService
     /// </remarks>
     public static bool ContainsWordSequence(List<string> wordSequence, string text)
     {
-        if (text.HasNoValue())
+        if (wordSequence.HasNoValue() || text.HasNoValue())
             return false;
 
-        var subjectWords = GetWords(text);
+        var textWords = GetWords(text);
 
-        if (!subjectWords.Any())
+        if (textWords.HasNoValue())
             return false;
 
-        for (int i = 0; i <= wordSequence.Count - subjectWords.Count; i++)
+        // Clean and normalize the search sequence
+        var normalizedSequence = wordSequence
+            .Select(w => NormalizeText(w))
+            .Where(w => w.HasValue())
+            .ToList();
+
+        if (!normalizedSequence.Any())
+            return false;
+
+        // 1. Try full contiguous sequence match first
+        if (normalizedSequence.Count <= textWords.Count)
+        {
+            for (int i = 0; i <= textWords.Count - normalizedSequence.Count; i++)
+            {
+                bool match = true;
+
+                for (int j = 0; j < normalizedSequence.Count; j++)
+                {
+                    if (!string.Equals(textWords[i + j], normalizedSequence[j], StringComparison.OrdinalIgnoreCase))
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                    return true;
+            }
+        }
+
+        // 2. Fallback: Check if text contains any individual word from wordSequence
+        var textWordSet = new HashSet<string>(textWords, StringComparer.OrdinalIgnoreCase);
+        return normalizedSequence.Any(word => textWordSet.Contains(word));
+    }
+
+    /// <summary>
+    /// Finds non-overlapping matches from a collection of candidate items ordered by length descending.
+    /// Prefers longer sequence matches and claims word indices to prevent smaller sub-phrases from matching.
+    /// </summary>
+    /// <typeparam name="T">The type containing candidate metadata (e.g., Id, Name).</typeparam>
+    /// <param name="text">The source text to search against.</param>
+    /// <param name="candidates">The available candidate items.</param>
+    /// <param name="textSelector">Selector to extract the phrase string from each candidate item.</param>
+    /// <returns>A list of matching candidate items.</returns>
+    public static List<T> MatchNonOverlappingSequences<T>(string text, IEnumerable<T> candidates, Func<T, string> textSelector)
+    {
+        if (text.HasNoValue() || candidates.HasNoValue() || textSelector.HasNoValue())
+            return [];
+
+        var textWords = GetWords(text);
+        if (!textWords.Any())
+            return [];
+
+        // Pre-tokenize candidates and sort by word length descending so longer phrases claim indices first
+        var sortedCandidates = candidates
+            .Select(item => new
+            {
+                Item = item,
+                Words = GetWords(textSelector(item))
+            })
+            .Where(c => c.Words.Any())
+            .OrderByDescending(c => c.Words.Count)
+            .ToList();
+
+        var matchedItems = new List<T>();
+        var usedIndices = new HashSet<int>();
+
+        foreach (var candidate in sortedCandidates)
+        {
+            var matchPositions = FindSequenceIndices(textWords, candidate.Words);
+            bool matched = false;
+
+            foreach (int startIdx in matchPositions)
+            {
+                var wordRange = Enumerable.Range(startIdx, candidate.Words.Count);
+
+                // If any word index in this sequence was already claimed by a longer match, skip it
+                if (wordRange.Any(usedIndices.Contains))
+                    continue;
+
+                // Claim word indices
+                foreach (int idx in wordRange)
+                    usedIndices.Add(idx);
+
+                matched = true;
+            }
+
+            if (matched)
+                matchedItems.Add(candidate.Item);
+        }
+
+        return matchedItems;
+    }
+
+    /// <summary>
+    /// Finds all zero-based starting word indices where targetWords matches contiguous sequence in textWords.
+    /// </summary>
+    private static List<int> FindSequenceIndices(List<string> textWords, List<string> targetWords)
+    {
+        var startingIndices = new List<int>();
+
+        if (targetWords == null || targetWords.Count == 0 || targetWords.Count > textWords.Count)
+            return startingIndices;
+
+        for (int i = 0; i <= textWords.Count - targetWords.Count; i++)
         {
             bool match = true;
 
-            for (int j = 0; j < subjectWords.Count; j++)
+            for (int j = 0; j < targetWords.Count; j++)
             {
-                if (wordSequence[i + j] != subjectWords[j])
+                if (!string.Equals(textWords[i + j], targetWords[j], StringComparison.OrdinalIgnoreCase))
                 {
                     match = false;
                     break;
@@ -52,10 +157,10 @@ public static class TextService
             }
 
             if (match)
-                return true;
+                startingIndices.Add(i);
         }
 
-        return false;
+        return startingIndices;
     }
 
     /// <summary>

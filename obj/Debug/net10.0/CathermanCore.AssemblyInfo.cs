@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CathermanCore")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f7939ebfc0e310b744bf424e2d498957e8e16786")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1dfba2766d3b2fc90e93e07f05e2e5beb3d1a809")]
 [assembly: System.Reflection.AssemblyProductAttribute("CathermanCore")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CathermanCore")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
