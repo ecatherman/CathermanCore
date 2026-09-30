@@ -51,9 +51,19 @@ public static class Extensions
     public static bool HasNoValue([NotNullWhen(false)] this int? i) => !i.HasValue();
     public static bool HasNoValue(this int i) => i == 0;
 
-    public static T FromJson<T>(this string? str) where T : new() =>
-        str.HasValue() ? JsonConvert.DeserializeObject<T>(str) ?? new T() : new T();
-    
+    public static T? FromJson<T>(this string json) where T : class
+    {
+        if (json.HasNoValue()) return null;
+        try
+        {
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     public static string ToJson<T>(this T obj) 
     {
         var settings = new JsonSerializerSettings
@@ -77,10 +87,11 @@ public static class Extensions
 
     public static void MoveToFront<T>(this List<T> list, Predicate<T> predicate)
     {
-        var item = list.Find(predicate) ?? default;
-        if (item != null)
+        int index = list.FindIndex(predicate);
+        if (index >= 0)
         {
-            list.Remove(item);
+            var item = list[index];
+            list.RemoveAt(index);
             list.Insert(0, item);
         }
     }
@@ -123,13 +134,13 @@ public static class Extensions
 
     public static List<string> SplitAndTrim(this string input, string delimiter) =>
         input.Split(delimiter,StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
-    
+
     public static T? Pop<T>(this List<T> list)
     {
-        var item = list.FirstOrDefault();
-        if (item == null)
+        if (list == null || list.Count == 0)
             return default;
 
+        var item = list[0];
         list.RemoveAt(0);
         return item;
     }
@@ -137,7 +148,7 @@ public static class Extensions
     public static string ToBase64(this string input) => Convert.ToBase64String(Encoding.UTF8.GetBytes(input));
     public static string FromBase64(this string input) => Encoding.UTF8.GetString(Convert.FromBase64String(input));
     public static string ToBase64(this object input) => input.ToJson().ToBase64();
-    public static T FromBase64<T>(this string input) where T : new() => input.FromBase64().FromJson<T>();
+    public static T? FromBase64<T>(this string input) where T : class => input.FromBase64().FromJson<T>();
 
     public static bool IsSimpleType(this Type type) => 
         type.IsPrimitive || type.IsValueType || type == typeof(string);
@@ -284,5 +295,8 @@ public static class Extensions
 
         return false;
     }
+
+    public static bool NotAny<T>(this IEnumerable<T> source, Func<T, bool> predicate) => !source.Any(predicate);
+
 
 }

@@ -8,15 +8,6 @@ namespace CathermanCore;
 public static class TextService
 {
     /// <summary>
-    /// Determines whether a specific word sequence contains the target text sequence in order.
-    /// </summary>
-    /// <param name="wordSequence">The full text sequence to search within (e.g., "The quick brown fox").</param>
-    /// <param name="text">The phrase or sequence of words to look for (e.g., "quick brown").</param>
-    /// <returns><c>true</c> if the exact sequence of words exists within <paramref name="wordSequence"/>; otherwise, <c>false</c>.</returns>
-    public static bool ContainsWordSequence(string wordSequence, string text) =>
-        ContainsWordSequence(GetWords(wordSequence), text);
-
-    /// <summary>
     /// Determines whether a target text contains an exact ordered word sequence from <paramref name="wordSequence"/>.
     /// Falls back to checking if <paramref name="text"/> contains any individual word from <paramref name="wordSequence"/>.
     /// </summary>

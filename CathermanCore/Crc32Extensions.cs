@@ -31,7 +31,6 @@ public static class Crc32Extensions
         return (int)~crc;
     }
 
-    // Overload specifically for byte arrays to make usage cleaner
     public static int ToCrc32Int(this byte[] source)
     {
         return ToCrc32Int((ReadOnlySpan<byte>)source);
