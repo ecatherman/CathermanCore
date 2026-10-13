@@ -158,8 +158,26 @@ public static class EntityFrameworkExtensions
         Func<TEntity, bool>? condition = null) where TEntity : class, IEntity
     {
         ArgumentNullException.ThrowIfNull(context);
-
         var entity = await context.FindAsync<TEntity>(id);
+        return await context.DeleteAsync(entity, condition);
+    }
+
+    /// <summary>
+    /// Asynchronously performs a soft delete on an entity with the specified ID by setting its <see cref="IEntity.IsLive"/> property to <c>false</c>.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type implementing <see cref="IEntity"/>.</typeparam>
+    /// <param name="context">The database context.</param>
+    /// <param name="entity">The entity to mark for soft deletion.</param>
+    /// <param name="condition">An optional condition predicate that must evaluate to <c>true</c> for the soft delete to proceed.</param>
+    /// <returns>A task representing the asynchronous operation that yields <c>true</c> if the entity was successfully updated and saved; otherwise, <c>false</c>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is <c>null</c>.</exception>
+    public static async Task<bool> DeleteAsync<TEntity>(
+        this DbContext context,
+        TEntity? entity,
+        Func<TEntity, bool>? condition = null) where TEntity : class, IEntity
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
         if (entity == null)
             return false;
 
@@ -188,14 +206,34 @@ public static class EntityFrameworkExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(ids);
+        var entities = await context.FindAllAsync<TEntity>(ids);
+        return await context.DeleteAsync(entities, condition);
+    }
 
-        var entities = (await context.FindAllAsync<TEntity>(ids)).ToList();
-        if (entities.Count == 0)
+    /// <summary>
+    /// Asynchronously performs a soft delete on multiple entities matching the provided IDs by setting their <see cref="IEntity.IsLive"/> property to <c>false</c>.
+    /// </summary>
+    /// <typeparam name="TEntity">The entity type implementing <see cref="IEntity"/>.</typeparam>
+    /// <param name="context">The database context.</param>
+    /// <param name="entities">The collection of entities to mark for soft deletion.</param>
+    /// <param name="condition">An optional condition predicate that must evaluate to <c>true</c> for an entity to be soft deleted.</param>
+    /// <returns>A task representing the asynchronous operation that yields <c>true</c> if at least one entity was updated and saved; otherwise, <c>false</c>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> or <paramref name="ids"/> is <c>null</c>.</exception>
+    public static async Task<bool> DeleteAsync<TEntity>(
+        this DbContext context,
+        IEnumerable<TEntity> entities,
+        Func<TEntity, bool>? condition = null) where TEntity : class, IEntity
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(entities);
+
+        var list = entities.ToList();
+        if (list.Count == 0)
             return false;
 
         var entitiesToDelete = condition != null
-            ? entities.Where(condition).ToList()
-            : entities;
+            ? list.Where(condition).ToList()
+            : list;
 
         if (entitiesToDelete.Count == 0)
             return false;
@@ -207,6 +245,7 @@ public static class EntityFrameworkExtensions
 
         return true;
     }
+
 
     #endregion
 

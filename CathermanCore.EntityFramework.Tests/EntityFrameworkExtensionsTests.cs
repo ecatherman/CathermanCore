@@ -241,7 +241,7 @@ public class EntityFrameworkExtensionsTests
     public async Task DeleteAsync_EmptyIds_ReturnsFalse()
     {
         using var db = TestDb.Create();
-        var result = await db.DeleteAsync<Post>([]);
+        var result = await db.DeleteAsync<Post>(Enumerable.Empty<int>());
         Assert.False(result);
     }
 

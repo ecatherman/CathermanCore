@@ -8,4 +8,7 @@ public class TaskResult
     public object? Data { get; set; } = null;
 
     public bool SameReference { get; set; }
+
+    public static TaskResult Fail(string key, string message, object? data = null, bool sameReference = false) =>
+        new() { Success = false, Key = key, Message = message, Data = data, SameReference = sameReference };
 }
