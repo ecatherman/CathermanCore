@@ -68,7 +68,7 @@ public class HideShowTagHelperTests
 
         new HideTagHelper { Hide = true }.Process(CreateContext(), output);
 
-        Assert.Equal("display: none;color: red;", Style(output));
+        Assert.Equal("color: red;display: none;", Style(output));
         Assert.Single(output.Attributes, a => a.Name == "style");
     }
 
@@ -116,8 +116,8 @@ public class AddOrAppendTests
     }
 
     [Theory]
-    [InlineData("color: red", "display:none;color: red;")]
-    [InlineData("color: red;", "display:none;color: red;")]
+    [InlineData("color: red", "color: red;display:none;")]
+    [InlineData("color: red;", "color: red;display:none;")]
     public void ExistingStyle_IsAppendedAfterNewValue(string existing, string expected)
     {
         var attributes = new TagHelperAttributeList { { "style", existing } };

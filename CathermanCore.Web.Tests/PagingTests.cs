@@ -194,26 +194,43 @@ public class PagingTagHelperTests
     }
 
     [Fact]
-    public async Task ProcessAsync_PageUrlSet_IsCopiedToPaging()
+    public async Task ProcessAsync_DoesNotModifyPaging()
     {
+        // The view builds its links from Model.Paging.PageUrl (with a {PageNumber} placeholder),
+        // so the tag helper must hand the caller's Paging object through untouched.
         var fixture = new HtmlHelperFixture();
-        var paging = new Paging { PageUrl = "/old" };
-        var tagHelper = new PagingTagHelper(fixture.Object) { Paging = paging, PageUrl = "/works" };
-
-        await tagHelper.ProcessAsync(CreateContext("paging"), CreateOutput("paging"));
-
-        Assert.Equal("/works", paging.PageUrl);
-    }
-
-    [Fact]
-    public async Task ProcessAsync_PageUrlEmpty_LeavesPagingPageUrlAlone()
-    {
-        var fixture = new HtmlHelperFixture();
-        var paging = new Paging { PageUrl = "/keep" };
+        var paging = new Paging { PageUrl = "/works?page={PageNumber}", PageSize = 25, TotalCount = 80 };
         var tagHelper = new PagingTagHelper(fixture.Object) { Paging = paging };
 
         await tagHelper.ProcessAsync(CreateContext("paging"), CreateOutput("paging"));
 
-        Assert.Equal("/keep", paging.PageUrl);
+        Assert.Same(paging, tagHelper.Paging);
+        Assert.Equal("/works?page={PageNumber}", paging.PageUrl);
+        Assert.Equal(25, paging.PageSize);
+        Assert.Equal(80, paging.TotalCount);
+    }
+
+    [Fact]
+    public async Task ProcessAsync_PagingIsReachableFromTheViewModel()
+    {
+        var fixture = new HtmlHelperFixture();
+        var paging = new Paging { TotalCount = 250 };
+        var tagHelper = new PagingTagHelper(fixture.Object) { Paging = paging };
+
+        await tagHelper.ProcessAsync(CreateContext("paging"), CreateOutput("paging"));
+
+        var model = Assert.IsType<PagingTagHelper>(Assert.Single(fixture.PartialCalls).Model);
+        Assert.Same(paging, model.Paging);
+    }
+
+    [Fact]
+    public void Paging_DefaultsToAnEmptyPagingInstance()
+    {
+        var tagHelper = new PagingTagHelper(new HtmlHelperFixture().Object);
+
+        Assert.NotNull(tagHelper.Paging);
+        Assert.Equal(0, tagHelper.Paging.TotalPages);
+        Assert.Equal(1, tagHelper.Paging.PageNumber);
+        Assert.Equal("", tagHelper.Paging.PageUrl);
     }
 }

@@ -63,8 +63,8 @@ public class ViewTagHelperTests
 
         await tagHelper.ProcessAsync(CreateContext(), CreateOutput());
 
-        Assert.Equal("Sample", tagHelper.ViewName);
-        Assert.Equal("TagHelpers/Sample", Assert.Single(fixture.PartialCalls).ViewName);
+        Assert.Equal("SampleView", tagHelper.ViewName);
+        Assert.Equal("TagHelpers/SampleView", Assert.Single(fixture.PartialCalls).ViewName);
     }
 
     [Fact]

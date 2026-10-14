@@ -9,7 +9,7 @@ public class ProviderButtonTagHelper(IHtmlHelper htmlHelper) : ViewTagHelper(htm
     public string Provider { get; set; } = "";
     protected override void ProcessView(TagHelperContext context, TagHelperOutput output)
     {
-        ViewName = Path.Combine("SignInButtons", Provider);
+        ViewName = $"SignInButtons/{Provider}";
     }
 }
 

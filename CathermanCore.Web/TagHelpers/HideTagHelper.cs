@@ -32,19 +32,29 @@ public static class TagHelperExtensions
 {
     public static void AddOrAppend(this TagHelperAttributeList attributes, string key, string value)
     {
-        if(!value.EndsWith(';'))
-            value = $"{value};";
+        var isStyle = key.Equals("style", StringComparison.OrdinalIgnoreCase);
+        var existing = attributes.FirstOrDefault(a => a.Name.Equals(key, StringComparison.OrdinalIgnoreCase));
+        var old = existing?.Value?.ToString() ?? "";
 
-        var attribute = attributes.Where(a => a.Name == "style").FirstOrDefault();
-        if( attribute != null)
-        { 
-            attributes.Remove(attribute);
-            value = $"{value}{attribute.Value}";
+        if (existing.HasValue())
+            attributes.Remove(existing);
 
-            if (!value.EndsWith(';'))
-                value = $"{value};";
+        string merged;
+        if (isStyle)
+        {
+            if (old.Length > 0 && !old.TrimEnd().EndsWith(';'))
+                old += ";";
+
+            merged = old + value;
+
+            if (!merged.EndsWith(';'))
+                merged += ";";
         }
-        
-        attributes.Add(key, value);
+        else
+        {
+            merged = old.HasNoValue() ? value : $"{old} {value}";
+        }
+
+        attributes.Add(key, merged);
     }
 }
