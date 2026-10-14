@@ -1,0 +1,106 @@
+﻿@model DialogBoxTagHelper
+
+<div id="dialogModal" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm mt-3">
+        <div class="modal-content">
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button id="dialogModalCancelButton"
+                        type="button"
+                        class="btn btn-secondary">
+                    Cancel
+                </button>
+                <button type="button"
+                        class="btn btn-primary"
+                        id="dialogModalOkButton">
+                    Ok
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    (() => {
+
+        window.showDialogBox = function showDialogBox(message, okCallBack, cancelCallback, waitMilliseconds)
+        {
+
+            $('#dialogModalOkButton').text('Ok');
+            $('#dialogModalCancelButton').text('Cancel');
+
+            if(cancelCallback )
+                $('#dialogModalCancelButton').show();
+            else
+                $('#dialogModalCancelButton').hide();
+
+            if(!okCallBack && !cancelCallback)
+                $('#dialogModalCancelButton').hide();
+
+            openModal(message, okCallBack, cancelCallback, waitMilliseconds);
+        }
+
+        window.showYesNoBox = function showYesNoBox(message, yesCallBack, noCallback, waitMilliseconds)
+        {
+            $('#dialogModalOkButton').text('Yes');
+            $('#dialogModalCancelButton').text('No');
+            $('#dialogModalCancelButton').show();
+            openModal(message, yesCallBack, noCallback, waitMilliseconds);
+        }
+
+        function openModal(message, okCallBack, cancelCallback, waitMilliseconds)
+        {
+            if (!message) {
+                    throw new Error('The argument "message" is required.');
+                }
+                if (okCallBack && typeof okCallBack !== 'function') {
+                    throw new Error('The argument "okCallBack" must be a function.');
+                }
+                if(cancelCallback && typeof cancelCallback !== 'function'){
+                    throw new Error('The argument "cancelCallback" must be a function.');
+                }
+
+                $('#dialogModal .modal-body').text(message);
+
+                const dialogElement = $('#dialogModal');
+                const options = {
+                    backdrop: true,
+                    focus: true,
+                    keyboard: true
+                };
+                const dialog = new bootstrap.Modal(dialogElement[0], options);
+
+                $('#dialogModalOkButton').on('click', () =>
+                {
+                    dialog.hide();
+                    if(okCallBack)
+                        okCallBack();
+                });
+
+                $('#dialogModalCancelButton').on('click', () =>
+                {
+                    dialog.hide();
+                    if(cancelCallback)
+                        cancelCallback();
+                });
+
+                dialog.show();
+
+                if (waitMilliseconds) {
+                    setTimeout(() => {
+                        dialog.hide();
+                    }, waitMilliseconds);
+                }
+
+                dialogElement.on('hide.bs.modal', () =>
+                {
+                    $('#dialogModalOkButton').off('click');
+                    $('#dialogModalCancelButton').off('click');
+                });
+        }
+
+    })();
+    
+</script>

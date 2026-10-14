@@ -1,0 +1,62 @@
+﻿@model ModalTagHelper
+@{
+    bool delete = Model.Write && Model.CustomCallback.HasValue();
+    string size = Model.Size.HasValue() && ((ReadOnlySpan<string>)["sm", "lg", "xl"]).Contains(Model.Size) ? $"modal-{Model.Size}" : "";
+}
+
+<div id="@Model.Id" class="modal" tabindex="-1" aria-labelledby="@(Model.Id)Label" aria-hidden="true">
+    <div class="modal-dialog @size">
+        <div class="modal-content">
+            <div if="@Model.Header.HasValue()" class="modal-header">
+                <h5 id="@(Model.Id)Label" class="modal-title">@Model.Header</h5>
+                <button type="button" 
+                        class="btn-close" 
+                        data-bs-dismiss="modal" 
+                        aria-label="Close">
+                </button>
+            </div>
+            <div class="modal-body">
+                @Html.Raw(Model.InnerHtml)
+            </div>
+            <div class="modal-footer">
+                <button type="button" 
+                        class="btn btn-secondary" 
+                        data-bs-dismiss="modal">
+                    Close
+                </button>
+                <button if="@delete" 
+                        type="button" 
+                        class="btn btn-danger" 
+                        data-bs-dismiss="modal" 
+                        onclick="@Model.CustomCallback">
+                    @Model.CustomText
+                </button>
+                <button if="@Model.Write" 
+                        type="submit" 
+                        class="btn btn-primary">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() =>{
+        const modalWindowElement = $('#@(Model.Id)');
+        modalWindowElement.on('shown.bs.modal', function() { //Requires the function() declaration to bind "this" correctly
+            let input = $(this).find('[modal-autofocus]');
+            input.focus();
+            const id = input.attr('id');
+            if (id) {
+                input = $('#' + id + '-flexdatalist');
+                input.focus();
+            }
+
+            modalWindowElement.css('z-index', getTopZIndex() + 1);
+        });
+        modalWindowElement.on('hide.bs.modal', () => {
+            modalWindowElement.css('z-index', '');
+        });
+    })();
+</script>

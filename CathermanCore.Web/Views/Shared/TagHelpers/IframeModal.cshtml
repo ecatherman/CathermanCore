@@ -1,0 +1,198 @@
+﻿@model IframeModalTagHelper
+@{
+    
+}
+<div id="@Model.Id" class="modal" tabindex="-1" aria-labelledby="@(Model.Id)Label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable" style="height: 700px; max-height: 700px;">
+        <div class="modal-content" style="height: 100%;">
+            <div class="modal-header">
+                <h5 id="@(Model.Id)Label" class="modal-title"></h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+            </div>
+            <div class="modal-body d-flex flex-column overflow-hidden">
+            </div>
+            <div class="modal-footer bg-white">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        let iframe = null;
+        let interval = null;
+        let footerObserver = null; // Store observer reference to disconnect on modal hide
+
+        const modalIframeElement = document.getElementById('@Model.Id');
+        const modalTitle = modalIframeElement.querySelector('.modal-title');
+        const modalBody = modalIframeElement.querySelector('.modal-body');
+        const modalFooter = modalIframeElement.querySelector('.modal-footer');
+        const modal = new bootstrap.Modal(modalIframeElement, {
+            backdrop: true,
+            focus: true,
+            keyboard: true
+        });
+        window.iframeModal = {
+            show: function (url)
+            {
+                // Clear previous content & observers
+                footerObserver?.disconnect();
+                iframe?.parentElement?.removeChild(iframe);
+                modalBody.innerHTML = '';
+                
+                iframe = document.createElement('iframe');
+
+                iframe.addEventListener('load', function () 
+                {
+                    // Clear previous content
+                    modalTitle.innerText = '';
+                    modalFooter.innerHTML = '';
+
+                    $('.modal-dialog').attr('class', 'modal-dialog');
+                    const modalSize = iframe.contentDocument?.querySelector('#iframeModalSize')?.value;
+                    if(modalSize)
+                        $('.modal-dialog').addClass(modalSize);
+
+                    interval = setInterval(resizeIframe,500);
+                    resizeIframe();
+
+                    const titleElement = iframe.contentDocument.querySelector('title');
+                    const headerText = titleElement?.textContent.trim() || '';
+                    modalTitle.innerText = headerText;
+
+                    const iframeFooter = iframe.contentDocument.querySelector('footer');
+                    if(!iframeFooter)
+                        return;
+
+                    const iframeFooterNodes = Array.from(iframeFooter.children);
+
+                    // Helper to mirror dynamic properties from iframe element to modal clone
+                    function syncElementState(sourceEl, targetEl) {
+                        targetEl.disabled = sourceEl.disabled;
+                        targetEl.className = sourceEl.className;
+
+                        if (sourceEl.innerText !== targetEl.innerText) {
+                            targetEl.innerText = sourceEl.innerText;
+                        }
+
+                        // Mirror inline style (handles style.display = 'none' / 'block')
+                        targetEl.style.display = sourceEl.style.display;
+
+                        // Mirror the standard HTML 'hidden' attribute
+                        if (sourceEl.hasAttribute('hidden')) {
+                            targetEl.setAttribute('hidden', '');
+                        } else {
+                            targetEl.removeAttribute('hidden');
+                        }
+                    }
+
+                    iframeFooterNodes.forEach(footerNode => {
+                        const element = footerNode.cloneNode(true);
+
+                        // Sync initial state (disabled, classes, etc.)
+                        syncElementState(footerNode, element);
+
+                        element.removeAttribute("onclick");
+
+                        element.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            if (footerNode.tagName === 'A') {
+                                const href = footerNode.getAttribute('href');
+                                if (href) {
+                                    setTimeout(() => {window.iframeModal.show(href);}, 0);
+                                    return;
+                                }
+                            }
+
+                            footerNode?.click();
+                        });
+
+                        if(footerNode?.hasAttribute('data-bs-dismiss') && footerNode.getAttribute('data-bs-dismiss') == 'modal')
+                            footerNode.addEventListener('click', function () {
+                                modal.hide();
+                            });
+
+                        modalFooter.appendChild(element);
+
+                        // Setup MutationObserver to watch changes on the iframe footer node
+                        footerObserver = new MutationObserver(() => {
+                            syncElementState(footerNode, element);
+                        });
+
+
+                        footerObserver.observe(footerNode, {
+                            attributes: true,          // Watch for disabled, class, style attribute changes
+                            childList: true,           // Watch for text/content changes
+                            characterData: true,
+                            subtree: true
+                        });
+                    });
+                });
+
+                iframe.src = url;
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                iframe.style.border = 'none';                        
+                iframe.style.resize = 'both';
+                iframe.style.overflowY = 'auto';
+                iframe.style.overflowX = 'hidden';
+                modalBody.appendChild(iframe);
+
+                modal.show();
+                
+                $(modalIframeElement).css('z-index', getTopZIndex() + 1);
+            }
+        };
+
+        window.addEventListener('message', (event) => {
+            // Security check: ensure the data originates from your own trusted domain
+            if (event.origin !== window.location.origin) return;
+              
+            if (event.data?.task == 'reloadIframeModal') {
+                modal.hide();
+                setTimeout(() => { iframeModal.show(event.data.url); }, 0);
+            }
+            else if (event.data?.task == 'closeIframeModal') {
+                modal.hide();
+            }
+            else if (event.data?.task == 'reloadTopPage') {
+                if(askToSaveChanges) {
+                    const $form = $('form:not(#logoutForm)');
+                    if($form.length) { 
+                        $form.submit();
+                        return;
+                    }
+                }
+                else
+                    window.location.reload();
+            }
+            else if (event.data?.task == 'askToSaveChanges') {
+                askToSaveChanges = true;
+            }
+        });
+
+        modalIframeElement.addEventListener('hide.bs.modal', () => {
+            clearInterval(interval);
+            footerObserver?.disconnect(); // Disconnect observer when modal closes
+
+            // Clear content
+            iframe?.parentElement?.removeChild(iframe);
+            modalTitle.innerText = '';
+            modalBody.innerHTML = '';
+            modalFooter.innerHTML = '';
+            modalIframeElement.style.zIndex = '';
+        });
+
+        function resizeIframe()
+        {
+             const documentHeight = iframe?.contentDocument?.documentElement?.scrollHeight || 0;
+             const bodyHeight = iframe?.contentDocument?.body?.scrollHeight || 0;
+             iframe.style.height = Math.max(documentHeight, bodyHeight) + 'px';
+             modal.handleUpdate();
+        }
+    })();
+</script>

@@ -1,0 +1,52 @@
+﻿@model PagingTagHelper
+
+@{
+    int start = Model.Paging.PageNumber < 5 ? 1 : (Model.Paging.PageNumber - 5);
+    int end = Math.Min(start + 10 , Model.Paging.TotalPages);
+}
+<div class="row p-1">
+    <nav class="col-1 p-1 w-100" aria-label="Page navigation example">
+        <ul if="Model.Paging.TotalPages > 1" class="pagination">
+            <li if="Model.Paging.PageNumber > 1" class="page-item">
+                @{ string prevUrl = Model.Paging.PageUrl.Replace("{PageNumber}", (Model.Paging.PageNumber - 1).ToString()); }
+                <a class="page-link" href="@prevUrl">Previous</a>
+            </li>
+            <li if="Model.Paging.PageNumber <= 1" class="page-item disabled">
+                <span class="page-link" tabindex="-1" aria-disabled="true">Previous</span>
+            </li>
+            <li if="@start > 1" class="page-item">
+                @{
+                    string firstUrl = Model.Paging.PageUrl.Replace("{PageNumber}", "1");
+                }
+                <a class="page-link" href="@firstUrl">1</a>
+            </li>
+            <li if="@start > 1" class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            @for (int i = start; i <= end; i++)
+            {
+                string url = Model.Paging.PageUrl.Replace("{PageNumber}", i.ToString());
+                <li if="i != Model.Paging.PageNumber" class="page-item"><a class="page-link" href="@url">@i</a></li>
+                <li if="i == Model.Paging.PageNumber" class="page-item disabled"><span class="page-link">@i</span></li>
+            }
+            <li if="@(end <= Model.Paging.TotalPages)" class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            <li if="@Model.Paging.TotalPages > end" class="page-item">
+                @{
+                    string lastUrl = Model.Paging.PageUrl.Replace("{PageNumber}", Model.Paging.TotalPages.ToString());
+                }
+                <a class="page-link" href="@lastUrl">@Model.Paging.TotalPages</a>
+            </li>
+            <li if="Model.Paging.PageNumber < Model.Paging.TotalPages" class="page-item">
+                @{
+                    string nextUrl = Model.Paging.PageUrl.Replace("{PageNumber}", (Model.Paging.PageNumber + 1).ToString());
+                }
+                <a class="page-link" href="@nextUrl">Next</a>
+            </li>
+            <li if="Model.Paging.PageNumber >= Model.Paging.TotalPages" class="page-item disabled">
+                <a class="page-link" tabindex="-1" aria-disabled="true">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
