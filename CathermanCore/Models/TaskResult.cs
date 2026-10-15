@@ -11,4 +11,7 @@ public class TaskResult
 
     public static TaskResult Fail(string key, string message, object? data = null, bool sameReference = false) =>
         new() { Success = false, Key = key, Message = message, Data = data, SameReference = sameReference };
+
+    public static TaskResult Succeed(object? data = null) =>
+        new() { Success = true , Data = data };
 }
