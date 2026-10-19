@@ -68,13 +68,13 @@ public class EntityTests
     }
 
     [Fact]
-    public void Equals_DifferentEntityType_SameId_ReturnsTrue()
+    public void Equals_DifferentEntityType_SameId_ReturnsFalse()
     {
         // Two different Entity subclasses with same Id are considered equal
         // (base Equals only checks Id, not type)
         var a = new TestEntity(5);
         var b = new AnotherEntity(5);
-        Assert.True(a.Equals(b));
+        Assert.False(a.Equals(b));
     }
 
     // ── GetHashCode ───────────────────────────────────────────────────────────

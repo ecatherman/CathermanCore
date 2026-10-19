@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 
 namespace CathermanCore;
 public abstract class Entity : IEntity
@@ -13,9 +14,9 @@ public abstract class Entity : IEntity
     public string LastUpdateBy { get; set; } = "";
     [DefaultValue("N/A")]
     public string SourceData { get; set; } = "N/A";
-    public override bool Equals(object? obj) => 
-        obj != null && obj is Entity e && Id != 0 && e.Id != 0 && Id == e.Id;
+    public override bool Equals(object? obj) =>
+       ReferenceEquals(this, obj) || (obj is Entity e && GetType() == e.GetType() && Id != 0 && Id == e.Id);
     public override int GetHashCode() =>
-        Id.GetHashCode();
+        Id != 0 ? HashCode.Combine(GetType(), Id) : RuntimeHelpers.GetHashCode(this);
     public virtual bool IsValid() => true;
 }
