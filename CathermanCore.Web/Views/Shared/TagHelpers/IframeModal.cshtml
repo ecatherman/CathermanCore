@@ -160,6 +160,7 @@
                 modal.hide();
             }
             else if (event.data?.task == 'reloadTopPage') {
+                modal.hide();
                 if(askToSaveChanges) {
                     const $form = $('form:not(#logoutForm)');
                     if($form.length) { 

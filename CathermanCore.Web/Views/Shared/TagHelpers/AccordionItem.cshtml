@@ -1,7 +1,7 @@
 ﻿@model AccordionItemTagHelper
 
 <h2 class="accordion-header">
-    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#@Model.Id" aria-expanded="@(Model.Expand ? "true" : "false")" aria-controls="@($"{Model.Id}-item")">
+    <button class="accordion-button @(Model.Expand ? "" : "collapsed")"" type="button" data-bs-toggle="collapse" data-bs-target="#@($"{Model.Id}-item")" aria-expanded="@(Model.Expand ? "true" : "false")" aria-controls="@($"{Model.Id}-item")">
         @Model.Title
     </button>
 </h2>
