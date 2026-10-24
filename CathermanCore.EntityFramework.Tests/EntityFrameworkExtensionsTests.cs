@@ -1,9 +1,8 @@
 ﻿using CathermanCore;
 using CathermanCore.EntityFramework;
-using CathermanCore.Test.EF;
 using Microsoft.EntityFrameworkCore;
 
-namespace CathermanCore.Test;
+namespace CathermanCore.EntityFramework.Tests;
 
 public class EntityFrameworkExtensionsTests
 {
@@ -87,9 +86,9 @@ public class EntityFrameworkExtensionsTests
             new Post { Title = "A" },
             new Post { Title = "B" },
             new Post { Title = "C" });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var all = await db.Posts.ToListAsync();
+        var all = await db.Posts.ToListAsync(TestContext.Current.CancellationToken);
         var ids = all.Take(2).Select(p => p.Id).ToList();
 
         var result = (await db.FindAllAsync<Post>(ids)).ToList();
@@ -103,7 +102,7 @@ public class EntityFrameworkExtensionsTests
     {
         using var db = TestDb.Create();
         db.Posts.Add(new Post { Title = "Only" });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var realId = db.Posts.First().Id;
 
         var result = (await db.FindAllAsync<Post>([realId, 99999])).ToList();
@@ -143,7 +142,7 @@ public class EntityFrameworkExtensionsTests
     {
         using var db = TestDb.Create();
         db.Posts.AddRange(new Post { Title = "X" }, new Post { Title = "Y" });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var all = db.Posts.ToList();
         var ids = all.Select(p => p.Id).ToList();
@@ -162,14 +161,14 @@ public class EntityFrameworkExtensionsTests
         using var db = TestDb.Create();
         var post = new Post { Title = "Delete Me", IsLive = true };
         db.Posts.Add(post);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await db.DeleteAsync<Post>(post.Id);
 
         Assert.True(result);
         // Use IgnoreQueryFilters to verify it's still there but soft-deleted
         var deleted = await db.Posts.IgnoreQueryFilters()
-                              .FirstAsync(p => p.Id == post.Id);
+                              .FirstAsync(p => p.Id == post.Id, TestContext.Current.CancellationToken);
         Assert.False(deleted.IsLive);
     }
 
@@ -187,13 +186,13 @@ public class EntityFrameworkExtensionsTests
         using var db = TestDb.Create();
         var post = new Post { Title = "Conditional Delete", IsLive = true };
         db.Posts.Add(post);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await db.DeleteAsync<Post>(post.Id, p => p.Title == "Conditional Delete");
 
         Assert.True(result);
         var deleted = await db.Posts.IgnoreQueryFilters()
-                              .FirstAsync(p => p.Id == post.Id);
+                              .FirstAsync(p => p.Id == post.Id, TestContext.Current.CancellationToken);
         Assert.False(deleted.IsLive);
     }
 
@@ -203,13 +202,13 @@ public class EntityFrameworkExtensionsTests
         using var db = TestDb.Create();
         var post = new Post { Title = "Keep Me", IsLive = true };
         db.Posts.Add(post);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await db.DeleteAsync<Post>(post.Id, p => p.Title == "Wrong Title");
 
         Assert.False(result);
         // Entity should still be live
-        var stillLive = await db.Posts.FirstAsync(p => p.Id == post.Id);
+        var stillLive = await db.Posts.FirstAsync(p => p.Id == post.Id, TestContext.Current.CancellationToken);
         Assert.True(stillLive.IsLive);
     }
 
@@ -222,7 +221,7 @@ public class EntityFrameworkExtensionsTests
         db.Posts.AddRange(
             new Post { Title = "A", IsLive = true },
             new Post { Title = "B", IsLive = true });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var ids = db.Posts.Select(p => p.Id).ToList();
         var result = await db.DeleteAsync<Post>(ids);
@@ -230,10 +229,10 @@ public class EntityFrameworkExtensionsTests
         Assert.True(result);
         db.ChangeTracker.Clear();
 
-        var remaining = await db.Posts.CountAsync();
+        var remaining = await db.Posts.CountAsync(TestContext.Current.CancellationToken);
         Assert.Equal(0, remaining);
 
-        var allIgnoringFilters = await db.Posts.IgnoreQueryFilters().CountAsync();
+        var allIgnoringFilters = await db.Posts.IgnoreQueryFilters().CountAsync(TestContext.Current.CancellationToken);
         Assert.Equal(2, allIgnoringFilters);
     }
 
@@ -252,16 +251,16 @@ public class EntityFrameworkExtensionsTests
         db.Posts.AddRange(
             new Post { Title = "Delete", IsLive = true },
             new Post { Title = "Keep", IsLive = true });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var ids = db.Posts.Select(p => p.Id).ToList();
         await db.DeleteAsync<Post>(ids, p => p.Title == "Delete");
 
         db.ChangeTracker.Clear();
 
-        var remainingLive = await db.Posts.CountAsync();
+        var remainingLive = await db.Posts.CountAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, remainingLive);
-        Assert.Equal("Keep", (await db.Posts.FirstAsync()).Title);
+        Assert.Equal("Keep", (await db.Posts.FirstAsync(TestContext.Current.CancellationToken)).Title);
     }
 
     // ── Detach ────────────────────────────────────────────────────────────────
@@ -348,12 +347,12 @@ public class EntityFrameworkExtensionsTests
             var author = new Author { Name = "Paul" };
             var post = new Post { Title = "Romans", Author = author };
             db1.Posts.Add(post);
-            await db1.SaveChangesAsync();
+            await db1.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
 
         using (var db2 = new TestDbContext(options))
         {
-            var freshPost = await db2.Posts.FindAsync(1); // or attach new Post { Id = 1 }
+            var freshPost = await db2.Posts.FindAsync(1, TestContext.Current.CancellationToken); // or attach new Post { Id = 1 }
 
             await db2.LoadAsync<Post, Author>(freshPost!, p => p.Author!);
 
@@ -367,16 +366,16 @@ public class EntityFrameworkExtensionsTests
         using var db = TestDb.Create();
         var post = new Post { Title = "Galatians" };
         db.Posts.Add(post);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         db.Tags.AddRange(
             new Tag { Name = "Faith", PostId = post.Id },
             new Tag { Name = "Law", PostId = post.Id });
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Detach so collection isn't cached, then reload the post
         db.ChangeTracker.Clear();
-        var freshPost = await db.Posts.FindAsync(post.Id);
+        var freshPost = await db.Posts.FindAsync(post.Id, TestContext.Current.CancellationToken);
 
         await db.LoadAsync<Post, Tag>(freshPost!, p => p.Tags);
 

@@ -3,7 +3,7 @@ using CathermanCore.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace CathermanCore.Test.EF;
+namespace CathermanCore.EntityFramework.Tests;
 
 // ── Test entities ────────────────────────────────────────────────────────────
 

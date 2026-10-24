@@ -19,7 +19,7 @@ internal class StringCollectionComparer<T> : ValueComparer<List<T>>
 {
     public StringCollectionComparer()
         : base((l1, l2) => l1.SequenceEqual(l2),
-            l => l.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            l => l.Aggregate(0, (a, v) => HashCode.Combine(a, v)),
             l => l.ToList())
     {
     }
