@@ -8,6 +8,7 @@ public class Logging
 	public string EfLogLevel { get; set; } = nameof(Serilog.Events.LogEventLevel.Information);
     public string FilePath { get; set; } = "Logs/applog-.txt";
 	public string FileInterval { get; set; } = nameof(Serilog.RollingInterval.Day);
+	public string Application { get; set; } = "App";
 	public string Environment { get; set; } = "Development";
 	private static int FileSizeLimitBytes { get; set; } = 5242880;//5MB
 	public static int FileCountToKeep { get; set; } = 31;
@@ -40,7 +41,7 @@ public class Logging
 			],
 			""Enrich"": [ ""FromLogContext"", ""WithMachineName"", ""WithProcessId"", ""WithThreadId"" ],
 			""Properties"": {{
-				""Application"": ""BibleWork"",
+				""Application"": ""{Application}"",
 				""Environment"": ""{Environment}""
 			}}
 		}}

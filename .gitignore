@@ -427,3 +427,16 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Secrets, local config and local data - never commit these
+secrets.json
+appsettings.Local.json
+appsettings.*.local.json
+*.pfx
+*.snk
+*.pem
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+Logs/
