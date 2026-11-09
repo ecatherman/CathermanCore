@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace CathermanCore.Web.TagHelpers;
 
-public class ModalTagHelper(IHtmlHelper htmlHelper) : ViewTagHelper(htmlHelper)
+public class ModalTagHelper : ViewTagHelper
 {
     public string Header { get; set; } = "";
     public string Id { get; set; } = "";

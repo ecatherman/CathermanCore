@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace CathermanCore.Web.TagHelpers;
 
-public class DialogBoxTagHelper(IHtmlHelper htmlHelper) : ViewTagHelper(htmlHelper)
+public class DialogBoxTagHelper : ViewTagHelper
 {
     protected override void ProcessView(TagHelperContext context, TagHelperOutput output)
     {

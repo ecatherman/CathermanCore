@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 namespace CathermanCore.Web.TagHelpers;
 
 [HtmlTargetElement("button", Attributes = "provider")]
-public class ProviderButtonTagHelper(IHtmlHelper htmlHelper) : ViewTagHelper(htmlHelper)
+public class ProviderButtonTagHelper : ViewTagHelper
 {
     public string Provider { get; set; } = "";
     protected override void ProcessView(TagHelperContext context, TagHelperOutput output)

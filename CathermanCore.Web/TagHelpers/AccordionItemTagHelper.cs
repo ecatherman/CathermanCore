@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CathermanCore.Web.TagHelpers;
 
-public class AccordionItemTagHelper(IHtmlHelper htmlHelper) : ViewTagHelper(htmlHelper)
+public class AccordionItemTagHelper : ViewTagHelper
 {
     [HtmlAttributeName("id")]
     [Required]

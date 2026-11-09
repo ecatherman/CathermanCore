@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace CathermanCore.Web.TagHelpers
 {
-    public class IframeModalTagHelper(IHtmlHelper htmlHelper) : ViewTagHelper(htmlHelper)
+    public class IframeModalTagHelper : ViewTagHelper
     {
         public string Id { get; set; } = "";
         protected override void ProcessView(TagHelperContext context, TagHelperOutput output)

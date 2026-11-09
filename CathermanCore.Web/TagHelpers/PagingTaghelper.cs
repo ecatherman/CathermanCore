@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CathermanCore.Web.TagHelpers;
 
-public class PagingTagHelper(IHtmlHelper htmlHelper) : ViewTagHelper(htmlHelper)
+public class PagingTagHelper: ViewTagHelper
 {
     public Paging Paging { get; set; } = new();
     protected override void ProcessView(TagHelperContext context, TagHelperOutput output)

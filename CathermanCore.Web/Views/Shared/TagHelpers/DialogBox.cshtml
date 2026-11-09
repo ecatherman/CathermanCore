@@ -6,15 +6,17 @@
             <div class="modal-body">
             </div>
             <div class="modal-footer">
-                <button id="dialogModalCancelButton"
-                        type="button"
-                        class="btn btn-secondary">
-                    Cancel
-                </button>
                 <button type="button"
                         class="btn btn-primary"
-                        id="dialogModalOkButton">
-                    Ok
+                        id="dialogModalButton1">
+                </button>
+                <button type="button"
+                        class="btn btn-secondary"
+                        id="dialogModalButton2">
+                </button>
+                <button type="button"
+                        class="btn btn-info"
+                        id="dialogModalButton3">
                 </button>
             </div>
         </div>
@@ -27,78 +29,74 @@
 
         window.showDialogBox = function showDialogBox(message, okCallBack, cancelCallback, waitMilliseconds)
         {
-
-            $('#dialogModalOkButton').text('Ok');
-            $('#dialogModalCancelButton').text('Cancel');
-
-            if(cancelCallback )
-                $('#dialogModalCancelButton').show();
-            else
-                $('#dialogModalCancelButton').hide();
-
-            if(!okCallBack && !cancelCallback)
-                $('#dialogModalCancelButton').hide();
-
-            openModal(message, okCallBack, cancelCallback, waitMilliseconds);
+            window.showCustomDialog(message, 'OK', okCallBack, 'Cancel', cancelCallback, null, null, waitMilliseconds);
         }
 
         window.showYesNoBox = function showYesNoBox(message, yesCallBack, noCallback, waitMilliseconds)
         {
-            $('#dialogModalOkButton').text('Yes');
-            $('#dialogModalCancelButton').text('No');
-            $('#dialogModalCancelButton').show();
-            openModal(message, yesCallBack, noCallback, waitMilliseconds);
+            window.showCustomDialog(message, 'Yes', yesCallBack, 'No', noCallback, null, null, waitMilliseconds);
         }
 
-        function openModal(message, okCallBack, cancelCallback, waitMilliseconds)
-        {
+        window.showCustomDialog = function showCustomDialog(message, button1Text, button1Callback, button2Text, button2Callback, button3Text, button3Callback, waitMilliseconds) 
+        {            
+            $('#dialogModalButton3').text(button3Text);
+            $('#dialogModalButton2').text(button2Text);
+
+            if(button1Text)
+                $('#dialogModalButton1').text(button1Text);
+            else
+                $('#dialogModalButton1').text('Ok');
+
+            if (button3Callback)
+                $('#dialogModalButton3').show();
+            else
+                $('#dialogModalButton3').hide();
+
+            if (button2Callback)
+                $('#dialogModalButton2').show();
+            else
+                $('#dialogModalButton2').hide();
+
+            openModal(message, button1Callback, button2Callback, button3Callback, waitMilliseconds);
+        }
+
+        function openModal(message, button1Callback, button2Callback, button3Callback, waitMilliseconds) {
             if (!message) {
-                    throw new Error('The argument "message" is required.');
-                }
-                if (okCallBack && typeof okCallBack !== 'function') {
-                    throw new Error('The argument "okCallBack" must be a function.');
-                }
-                if(cancelCallback && typeof cancelCallback !== 'function'){
-                    throw new Error('The argument "cancelCallback" must be a function.');
-                }
+                throw new Error('The argument "message" is required.');
+            }
+            if (button1Callback && typeof button1Callback !== 'function' || 
+                button2Callback && typeof button2Callback !== 'function' ||
+                button3Callback && typeof button3Callback !== 'function')
+            {
+                throw new Error('A "Callback" argument must be a function.');
+            }
 
-                $('#dialogModal .modal-body').text(message);
+            $('#dialogModal .modal-body').text(message);
 
-                const dialogElement = $('#dialogModal');
-                const options = {
-                    backdrop: true,
-                    focus: true,
-                    keyboard: true
-                };
-                const dialog = new bootstrap.Modal(dialogElement[0], options);
+            const dialogElement = $('#dialogModal');
+            const options = { backdrop: true, focus: true, keyboard: true };
+            const dialog = bootstrap.Modal.getInstance(dialogElement[0]) || new bootstrap.Modal(dialogElement[0], options);
+            
+            // Esc or a backdrop click runs the cancel button's callback, or the OK callback if there is no cancel button
+            const dismissCallback = button2Callback || button1Callback;
 
-                $('#dialogModalOkButton').on('click', () =>
-                {
-                    dialog.hide();
-                    if(okCallBack)
-                        okCallBack();
-                });
+            let chosenCallback = dismissCallback;
+            let timedOut = false;
 
-                $('#dialogModalCancelButton').on('click', () =>
-                {
-                    dialog.hide();
-                    if(cancelCallback)
-                        cancelCallback();
-                });
+            // One handler for every way the dialog can close; .off first so an earlier dialog's handler never runs
+            dialogElement.off('hidden.bs.modal').one('hidden.bs.modal', () => {
+                if (!timedOut && chosenCallback) chosenCallback();
+            });
 
-                dialog.show();
+            $('#dialogModalButton1').off('click').on('click', () => { chosenCallback = button1Callback; dialog.hide(); });
+            $('#dialogModalButton2').off('click').on('click', () => { chosenCallback = button2Callback; dialog.hide(); });
+            $('#dialogModalButton3').off('click').on('click', () => { chosenCallback = button3Callback; dialog.hide(); });
 
-                if (waitMilliseconds) {
-                    setTimeout(() => {
-                        dialog.hide();
-                    }, waitMilliseconds);
-                }
+            dialog.show();
 
-                dialogElement.on('hide.bs.modal', () =>
-                {
-                    $('#dialogModalOkButton').off('click');
-                    $('#dialogModalCancelButton').off('click');
-                });
+            if (waitMilliseconds) {
+                setTimeout(() => { timedOut = true; dialog.hide(); }, waitMilliseconds);
+            }
         }
 
     })();

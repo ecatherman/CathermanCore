@@ -1,14 +1,18 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CathermanCore.Web.TagHelpers;
 
-public abstract class ViewTagHelper(IHtmlHelper htmlHelper) : TagHelper
+public abstract class ViewTagHelper : TagHelper
 {
-    private readonly IHtmlHelper HtmlHelper = htmlHelper;
-    private readonly IViewContextAware ViewContextAware = htmlHelper as IViewContextAware ?? 
+    private readonly IHtmlHelper HtmlHelper = GetService<IHtmlHelper>();
+    private readonly IViewContextAware ViewContextAware = HtmlHelper as IViewContextAware ?? 
         throw new Exception($"Error converting {nameof(IHtmlHelper)} to {nameof(IViewContextAware)}");
+
+    protected T GetService<T>() where T : notnull =>
+        ViewContext.HttpContext.RequestServices.GetRequiredService<T>();
 
     [HtmlAttributeNotBound]
     public virtual string ViewName { get; set; } = "";
