@@ -175,7 +175,7 @@ public class PagingTagHelperTests
         var fixture = new HtmlHelperFixture();
         var output = CreateOutput("paging");
 
-        await new PagingTagHelper(fixture.Object).ProcessAsync(CreateContext("paging"), output);
+        await new PagingTagHelper { ViewContext = fixture.ViewContext }.ProcessAsync(CreateContext("paging"), output);
 
         Assert.Equal("", output.TagName);
     }
@@ -184,7 +184,7 @@ public class PagingTagHelperTests
     public async Task ProcessAsync_RendersPagingPartialWithItselfAsModel()
     {
         var fixture = new HtmlHelperFixture();
-        var tagHelper = new PagingTagHelper(fixture.Object);
+        var tagHelper = new PagingTagHelper { ViewContext = fixture.ViewContext };
 
         await tagHelper.ProcessAsync(CreateContext("paging"), CreateOutput("paging"));
 
@@ -200,7 +200,7 @@ public class PagingTagHelperTests
         // so the tag helper must hand the caller's Paging object through untouched.
         var fixture = new HtmlHelperFixture();
         var paging = new Paging { PageUrl = "/works?page={PageNumber}", PageSize = 25, TotalCount = 80 };
-        var tagHelper = new PagingTagHelper(fixture.Object) { Paging = paging };
+        var tagHelper = new PagingTagHelper { ViewContext = fixture.ViewContext, Paging = paging };
 
         await tagHelper.ProcessAsync(CreateContext("paging"), CreateOutput("paging"));
 
@@ -215,7 +215,7 @@ public class PagingTagHelperTests
     {
         var fixture = new HtmlHelperFixture();
         var paging = new Paging { TotalCount = 250 };
-        var tagHelper = new PagingTagHelper(fixture.Object) { Paging = paging };
+        var tagHelper = new PagingTagHelper { ViewContext = fixture.ViewContext, Paging = paging };
 
         await tagHelper.ProcessAsync(CreateContext("paging"), CreateOutput("paging"));
 
@@ -226,7 +226,7 @@ public class PagingTagHelperTests
     [Fact]
     public void Paging_DefaultsToAnEmptyPagingInstance()
     {
-        var tagHelper = new PagingTagHelper(new HtmlHelperFixture().Object);
+        var tagHelper = new PagingTagHelper();
 
         Assert.NotNull(tagHelper.Paging);
         Assert.Equal(0, tagHelper.Paging.TotalPages);

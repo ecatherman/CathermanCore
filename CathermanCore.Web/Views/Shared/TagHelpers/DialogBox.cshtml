@@ -34,7 +34,7 @@
 
         window.showYesNoBox = function showYesNoBox(message, yesCallBack, noCallback, waitMilliseconds)
         {
-            window.showCustomDialog(message, 'Yes', yesCallBack, 'No', noCallback, null, null, waitMilliseconds);
+            window.showCustomDialog(message, 'Yes', yesCallBack, 'No', noCallback || (() => { }), null, null, waitMilliseconds);
         }
 
         window.showCustomDialog = function showCustomDialog(message, button1Text, button1Callback, button2Text, button2Callback, button3Text, button3Callback, waitMilliseconds) 
@@ -60,7 +60,8 @@
             openModal(message, button1Callback, button2Callback, button3Callback, waitMilliseconds);
         }
 
-        function openModal(message, button1Callback, button2Callback, button3Callback, waitMilliseconds) {
+        function openModal(message, button1Callback, button2Callback, button3Callback, waitMilliseconds) 
+        {
             if (!message) {
                 throw new Error('The argument "message" is required.');
             }
@@ -73,17 +74,15 @@
 
             $('#dialogModal .modal-body').text(message);
 
-            const dialogElement = $('#dialogModal');
-            const options = { backdrop: true, focus: true, keyboard: true };
-            const dialog = bootstrap.Modal.getInstance(dialogElement[0]) || new bootstrap.Modal(dialogElement[0], options);
-            
-            // Esc or a backdrop click runs the cancel button's callback, or the OK callback if there is no cancel button
-            const dismissCallback = button2Callback || button1Callback;
+            const isChoiceLocked = !!button3Callback; // the terms dialog must be answered
+            const options = { backdrop: isChoiceLocked ? 'static' : true, focus: true, keyboard: !isChoiceLocked };
 
-            let chosenCallback = dismissCallback;
+            const dialogElement = $('#dialogModal');
+            const dialog = bootstrap.Modal.getInstance(dialogElement[0]) || new bootstrap.Modal(dialogElement[0], options);
+
+            let chosenCallback = button2Callback; // Esc or a backdrop click counts as Cancel/No
             let timedOut = false;
 
-            // One handler for every way the dialog can close; .off first so an earlier dialog's handler never runs
             dialogElement.off('hidden.bs.modal').one('hidden.bs.modal', () => {
                 if (!timedOut && chosenCallback) chosenCallback();
             });
@@ -94,9 +93,8 @@
 
             dialog.show();
 
-            if (waitMilliseconds) {
+            if (waitMilliseconds)
                 setTimeout(() => { timedOut = true; dialog.hide(); }, waitMilliseconds);
-            }
         }
 
     })();

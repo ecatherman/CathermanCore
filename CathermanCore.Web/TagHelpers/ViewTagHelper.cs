@@ -7,10 +7,6 @@ namespace CathermanCore.Web.TagHelpers;
 
 public abstract class ViewTagHelper : TagHelper
 {
-    private readonly IHtmlHelper HtmlHelper = GetService<IHtmlHelper>();
-    private readonly IViewContextAware ViewContextAware = HtmlHelper as IViewContextAware ?? 
-        throw new Exception($"Error converting {nameof(IHtmlHelper)} to {nameof(IViewContextAware)}");
-
     protected T GetService<T>() where T : notnull =>
         ViewContext.HttpContext.RequestServices.GetRequiredService<T>();
 
@@ -26,7 +22,10 @@ public abstract class ViewTagHelper : TagHelper
 
     public async sealed override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
     {
-        ViewContextAware.Contextualize(ViewContext);
+        var htmlHelper = GetService<IHtmlHelper>();
+        var viewContextAware = htmlHelper as IViewContextAware ??
+            throw new Exception($"Error converting {nameof(IHtmlHelper)} to {nameof(IViewContextAware)}");
+        viewContextAware.Contextualize(ViewContext);
 
         ProcessView(context, output);
 
@@ -34,9 +33,9 @@ public abstract class ViewTagHelper : TagHelper
             InnerHtml = (await output.GetChildContentAsync()).GetContent();
 
         if (!ViewName.HasValue())
-            ViewName = GetType().Name.Replace(nameof(TagHelper), "");
+            ViewName = GetType().Name.Replace(nameof(TagHelper), "", StringComparison.InvariantCultureIgnoreCase);
 
-        output.Content.SetHtmlContent(await HtmlHelper.PartialAsync($"TagHelpers/{ViewName}", this));
+        output.Content.SetHtmlContent(await htmlHelper.PartialAsync($"TagHelpers/{ViewName}", this));
     }
 
     protected abstract void ProcessView(TagHelperContext context, TagHelperOutput output);

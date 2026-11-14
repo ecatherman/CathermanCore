@@ -60,7 +60,7 @@ public class AccordionItemTagHelperTests
         var fixture = new HtmlHelperFixture();
         var output = CreateOutput("accordion-item");
 
-        await new AccordionItemTagHelper(fixture.Object) { Id = "i1", ParentId = "acc1" }
+        await new AccordionItemTagHelper { ViewContext = fixture.ViewContext, Id = "i1", ParentId = "acc1" }
             .ProcessAsync(CreateContext("accordion-item"), output);
 
         Assert.Equal("div", output.TagName);
@@ -73,7 +73,7 @@ public class AccordionItemTagHelperTests
         var fixture = new HtmlHelperFixture();
         var output = CreateOutput("accordion-item");
 
-        await new AccordionItemTagHelper(fixture.Object) { Id = "i1", ParentId = "acc1", Class = "border-0" }
+        await new AccordionItemTagHelper { ViewContext = fixture.ViewContext, Id = "i1", ParentId = "acc1", Class = "border-0" }
             .ProcessAsync(CreateContext("accordion-item"), output);
 
         Assert.Equal("accordion-item border-0", output.Attributes["class"].Value?.ToString());
@@ -83,7 +83,7 @@ public class AccordionItemTagHelperTests
     public async Task ProcessAsync_RendersAccordionItemPartialWithItselfAsModel()
     {
         var fixture = new HtmlHelperFixture();
-        var tagHelper = new AccordionItemTagHelper(fixture.Object) { Id = "i1", ParentId = "acc1" };
+        var tagHelper = new AccordionItemTagHelper { ViewContext = fixture.ViewContext, Id = "i1", ParentId = "acc1" };
 
         await tagHelper.ProcessAsync(CreateContext("accordion-item"), CreateOutput("accordion-item"));
 
@@ -95,7 +95,7 @@ public class AccordionItemTagHelperTests
     [Fact]
     public void Defaults_AreCollapsedWithNoTitle()
     {
-        var tagHelper = new AccordionItemTagHelper(new HtmlHelperFixture().Object);
+        var tagHelper = new AccordionItemTagHelper();
 
         Assert.False(tagHelper.Expand);
         Assert.Equal("", tagHelper.Title);
