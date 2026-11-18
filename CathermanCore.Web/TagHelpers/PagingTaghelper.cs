@@ -18,7 +18,7 @@ public class Paging
     public int TotalCount { get; set; } = 0;
     public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
     public string PageUrl { get; set; } = "";
-    public int PageSize { get; set; } = 100;
+    public int PageSize { get => field; set => field = Math.Clamp(value, 1, 200); } = 100;
     private int _pageNumber = 1;
     public int PageNumber 
     { 
