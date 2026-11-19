@@ -18,7 +18,7 @@ internal class StringCollectionConverter<T> : ValueConverter<List<T>, string>
 internal class StringCollectionComparer<T> : ValueComparer<List<T>>
 {
     public StringCollectionComparer()
-        : base((l1, l2) => l1.SequenceEqual(l2),
+        : base((l1, l2) => l1 == null ? l2 == null : l2 != null && l1.SequenceEqual(l2),
             l => l.Aggregate(0, (a, v) => HashCode.Combine(a, v)),
             l => l.ToList())
     {
