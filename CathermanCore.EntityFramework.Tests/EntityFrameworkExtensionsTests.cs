@@ -352,7 +352,7 @@ public class EntityFrameworkExtensionsTests
 
         using (var db2 = new TestDbContext(options))
         {
-            var freshPost = await db2.Posts.FindAsync(1, TestContext.Current.CancellationToken); // or attach new Post { Id = 1 }
+            var freshPost = await db2.Posts.FindAsync(new object[] { 1 }, TestContext.Current.CancellationToken); // or attach new Post { Id = 1 }
 
             await db2.LoadAsync<Post, Author>(freshPost!, p => p.Author!);
 
@@ -375,7 +375,7 @@ public class EntityFrameworkExtensionsTests
 
         // Detach so collection isn't cached, then reload the post
         db.ChangeTracker.Clear();
-        var freshPost = await db.Posts.FindAsync(post.Id, TestContext.Current.CancellationToken);
+        var freshPost = await db.Posts.FindAsync(new object[] { post.Id }, TestContext.Current.CancellationToken);
 
         await db.LoadAsync<Post, Tag>(freshPost!, p => p.Tags);
 
